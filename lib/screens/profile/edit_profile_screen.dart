@@ -9,6 +9,7 @@ import '../../config/supabase_config.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
+import '../../utils/validators.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({Key? key}) : super(key: key);
@@ -19,6 +20,7 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _authService = AuthService();
+  final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _licenseController = TextEditingController();
@@ -54,16 +56,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _saveProfile() async {
+    // Validate form before saving
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
       final userId = _authService.userId;
-      if (userId != null) {
+      final userEmail = _authService.userEmail;
+      
+      if (userId != null && userEmail != null) {
         await SupabaseConfig.client.from('user_profiles').upsert({
           'id': userId,
-          'full_name': _fullNameController.text,
-          'phone_number': _phoneController.text,
-          'license_number': _licenseController.text,
+          'email': userEmail,
+          'full_name': _fullNameController.text.trim(),
+          'phone_number': _phoneController.text.trim(),
+          'license_number': _licenseController.text.trim(),
           'updated_at': DateTime.now().toIso8601String(),
         });
 
@@ -99,118 +109,124 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            // Avatar
-            Center(
-              child: Stack(
-                children: [
-                  Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppTheme.primaryColor,
-                    ),
-                    child: Center(
-                      child: Text(
-                        _authService.userEmail?.substring(0, 1).toUpperCase() ?? 'U',
-                        style: const TextStyle(
-                          fontSize: 48,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              // Avatar
+              Center(
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 120,
+                      height: 120,
                       decoration: BoxDecoration(
-                        color: AppTheme.secondaryColor,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 3),
+                        color: AppTheme.primaryColor,
                       ),
-                      child: const Icon(
-                        Icons.camera_alt,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-            CustomTextField(
-              controller: _fullNameController,
-              label: 'Full Name',
-              prefixIcon: Icons.person_outline,
-            ),
-            const SizedBox(height: 16),
-            CustomTextField(
-              controller: _phoneController,
-              label: 'Phone Number',
-              prefixIcon: Icons.phone_outlined,
-              keyboardType: TextInputType.phone,
-            ),
-            const SizedBox(height: 16),
-            CustomTextField(
-              controller: _licenseController,
-              label: 'License Number',
-              prefixIcon: Icons.credit_card,
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.email_outlined, color: Colors.grey),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Email',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                          ),
-                        ),
-                        Text(
-                          _authService.userEmail ?? '',
+                      child: Center(
+                        child: Text(
+                          _authService.userEmail?.substring(0, 1).toUpperCase() ?? 'U',
                           style: const TextStyle(
-                            fontWeight: FontWeight.w500,
+                            fontSize: 48,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                  const Text(
-                    'Verified',
-                    style: TextStyle(
-                      color: AppTheme.successColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.secondaryColor,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 3),
+                        ),
+                        child: const Icon(
+                          Icons.camera_alt,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 32),
-            CustomButton(
-              text: 'Save Changes',
-              onPressed: _saveProfile,
-              isLoading: _isLoading,
-            ),
-          ],
+              const SizedBox(height: 32),
+              CustomTextField(
+                controller: _fullNameController,
+                label: 'Full Name',
+                prefixIcon: Icons.person_outline,
+                validator: Validators.validateName,
+              ),
+              const SizedBox(height: 16),
+              CustomTextField(
+                controller: _phoneController,
+                label: 'Phone Number',
+                prefixIcon: Icons.phone_outlined,
+                keyboardType: TextInputType.phone,
+                validator: Validators.validatePhone,
+              ),
+              const SizedBox(height: 16),
+              CustomTextField(
+                controller: _licenseController,
+                label: 'License Number',
+                prefixIcon: Icons.credit_card,
+                validator: Validators.validateLicenseNumber,
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.email_outlined, color: Colors.grey),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Email',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                            ),
+                          ),
+                          Text(
+                            _authService.userEmail ?? '',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Text(
+                      'Verified',
+                      style: TextStyle(
+                        color: AppTheme.successColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+              CustomButton(
+                text: 'Save Changes',
+                onPressed: _saveProfile,
+                isLoading: _isLoading,
+              ),
+            ],
+          ),
         ),
       ),
     );
