@@ -6,17 +6,72 @@
 import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
 import '../../services/auth_service.dart';
+import '../../services/booking_service.dart';
 import '../admin/admin_dashboard_screen.dart';
 import 'edit_profile_screen.dart';
 import 'payment_methods_screen.dart';
 import 'notifications_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
 
   @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final _bookingService = BookingService();
+  final _authService = AuthService();
+  int _totalTrips = 0;
+  double _totalSpent = 0.0;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserStats();
+  }
+
+  Future<void> _loadUserStats() async {
+    try {
+      final userId = _authService.userId;
+      if (userId != null) {
+        final bookings = await _bookingService.getUserBookings(userId);
+        
+        // Count total trips (confirmed, completed, or active bookings)
+        // This includes all bookings the user has made or is currently using
+        final completedBookings = bookings.where(
+          (booking) => booking.status == 'confirmed' || 
+                      booking.status == 'completed' ||
+                      booking.status == 'active'
+        ).toList();
+        
+        // Calculate total spent from only completed bookings for financial accuracy
+        // Only completed bookings represent finalized transactions
+        final totalSpent = bookings.where(
+          (booking) => booking.status == 'completed'
+        ).fold<double>(
+          0.0,
+          (sum, booking) => sum + booking.totalPrice,
+        );
+        
+        setState(() {
+          _totalTrips = completedBookings.length;
+          _totalSpent = totalSpent;
+          _isLoading = false;
+        });
+      } else {
+        setState(() => _isLoading = false);
+      }
+    } catch (e) {
+      debugPrint('Error loading user stats: $e');
+      setState(() => _isLoading = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final user = AuthService().currentUser;
+    final user = _authService.currentUser;
 
     return Scaffold(
       body: CustomScrollView(
@@ -112,7 +167,7 @@ class ProfileScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: _buildStatCard(
-                          '12',
+                          _isLoading ? '...' : '$_totalTrips',
                           'Total Trips',
                           Icons.directions_car,
                           AppTheme.primaryColor,
@@ -121,7 +176,7 @@ class ProfileScreen extends StatelessWidget {
                       const SizedBox(width: 16),
                       Expanded(
                         child: _buildStatCard(
-                          '\$2,340',
+                          _isLoading ? '...' : '\$${_totalSpent.toStringAsFixed(0)}',
                           'Total Spent',
                           Icons.attach_money,
                           AppTheme.secondaryColor,
@@ -136,13 +191,17 @@ class ProfileScreen extends StatelessWidget {
                     context,
                     Icons.person_outline,
                     'Edit Profile',
-                    () {
-                      Navigator.push(
+                    () async {
+                      final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => const EditProfileScreen(),
                         ),
                       );
+                      // Refresh stats if profile was updated
+                      if (result == true) {
+                        _loadUserStats();
+                      }
                     },
                   ),
                   _buildMenuOption(

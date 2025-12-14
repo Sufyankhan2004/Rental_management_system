@@ -59,13 +59,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     try {
       final userId = _authService.userId;
       if (userId != null) {
-        await SupabaseConfig.client.from('user_profiles').upsert({
-          'id': userId,
-          'full_name': _fullNameController.text,
-          'phone_number': _phoneController.text,
-          'license_number': _licenseController.text,
-          'updated_at': DateTime.now().toIso8601String(),
-        });
+        await SupabaseConfig.client.from('user_profiles').upsert(
+          {
+            'id': userId,
+            'full_name': _fullNameController.text,
+            'phone_number': _phoneController.text,
+            'license_number': _licenseController.text,
+            'updated_at': DateTime.now().toIso8601String(),
+          },
+          onConflict: 'id',
+        );
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -74,7 +77,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               backgroundColor: AppTheme.successColor,
             ),
           );
-          Navigator.pop(context);
+          Navigator.pop(context, true); // Return true to indicate success
         }
       }
     } catch (e) {
