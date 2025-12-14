@@ -39,6 +39,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final bookings = await _bookingService.getUserBookings(userId);
         
         // Count total trips (confirmed, completed, or active bookings)
+        // This includes all bookings the user has made or is currently using
         final completedBookings = bookings.where(
           (booking) => booking.status == 'confirmed' || 
                       booking.status == 'completed' ||
@@ -46,6 +47,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ).toList();
         
         // Calculate total spent from only completed bookings for financial accuracy
+        // Only completed bookings represent finalized transactions
         final totalSpent = bookings.where(
           (booking) => booking.status == 'completed'
         ).fold<double>(
