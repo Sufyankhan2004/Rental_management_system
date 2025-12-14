@@ -38,15 +38,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (userId != null) {
         final bookings = await _bookingService.getUserBookings(userId);
         
-        // Count total trips (confirmed or completed bookings)
+        // Count total trips (confirmed, completed, or active bookings)
         final completedBookings = bookings.where(
           (booking) => booking.status == 'confirmed' || 
                       booking.status == 'completed' ||
                       booking.status == 'active'
         ).toList();
         
-        // Calculate total spent from completed bookings
-        final totalSpent = completedBookings.fold<double>(
+        // Calculate total spent from only completed bookings for financial accuracy
+        final totalSpent = bookings.where(
+          (booking) => booking.status == 'completed'
+        ).fold<double>(
           0.0,
           (sum, booking) => sum + booking.totalPrice,
         );
@@ -60,7 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() => _isLoading = false);
       }
     } catch (e) {
-      print('Error loading user stats: $e');
+      debugPrint('Error loading user stats: $e');
       setState(() => _isLoading = false);
     }
   }
