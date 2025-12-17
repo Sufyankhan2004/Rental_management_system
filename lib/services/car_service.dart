@@ -67,29 +67,35 @@ class CarService {
   /// Returns: The created car's ID
   Future<String> addCar(Car car, {File? imageFile}) async {
     try {
-      String? imageUrl;
-      
-      // Upload image if provided
-      if (imageFile != null) {
-        // Generate temporary ID for upload path
-        final tempId = DateTime.now().millisecondsSinceEpoch.toString();
-        imageUrl = await _storageService.uploadCarImageWithRetry(imageFile, tempId);
-      }
-      
-      // Prepare car data with image URL
+      // First, insert car without image to get the ID
       final carData = car.toJson();
-      if (imageUrl != null) {
-        carData['image_url'] = imageUrl;
-      }
+      carData['image_url'] = null; // Ensure image_url is null initially
       
-      // Insert car and get the ID
       final response = await _supabase
           .from('cars')
           .insert(carData)
           .select()
           .single();
       
-      return response['id'] as String;
+      final carId = response['id'] as String;
+      
+      // Upload image if provided and update car with image URL
+      if (imageFile != null) {
+        try {
+          final imageUrl = await _storageService.uploadCarImageWithRetry(imageFile, carId);
+          
+          // Update car with image URL
+          await _supabase
+              .from('cars')
+              .update({'image_url': imageUrl})
+              .eq('id', carId);
+        } catch (e) {
+          // If image upload fails, car is still created but without image
+          print('Warning: Car created but image upload failed: $e');
+        }
+      }
+      
+      return carId;
     } catch (e) {
       print('Error adding car: $e');
       rethrow;

@@ -368,7 +368,7 @@ class _ManageCarsScreenState extends State<ManageCarsScreen> {
                           if (image != null) {
                             setDialogState(() {
                               selectedImage = File(image.path);
-                              // Clear URL field when image is selected
+                              // Clear URL field since image file and URL are mutually exclusive
                               imageUrlController.clear();
                             });
                           }

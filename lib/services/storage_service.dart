@@ -76,7 +76,7 @@ class StorageService {
         try {
           await compressedFile.delete();
         } catch (e) {
-          print('Warning: Could not delete temporary compressed file: $e');
+          print('Warning: Could not delete temporary compressed file at ${compressedFile.path}: $e');
         }
       }
 
@@ -178,7 +178,7 @@ class StorageService {
   /// Example: 1234567890_a1b2c3d4-e5f6-7890-abcd-ef1234567890.jpg
   String _generateUniqueFileName(String carId, String extension) {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final uuid = _uuid.v4().split('-').first; // Use first part of UUID for brevity
+    final uuid = _uuid.v4(); // Use full UUID for better uniqueness
     
     // Remove leading dot from extension if present
     final ext = extension.startsWith('.') ? extension.substring(1) : extension;
