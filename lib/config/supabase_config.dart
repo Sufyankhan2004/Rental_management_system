@@ -36,4 +36,31 @@ class SupabaseConfig {
   }
 
   static SupabaseClient get client => Supabase.instance.client;
+
+  // Storage bucket configuration
+  static const String carImagesBucket = 'car-images';
+
+  /// Helper method to create storage bucket (call this once during setup)
+  /// 
+  /// Note: This method may fail if run from client-side.
+  /// It's recommended to create the bucket manually in Supabase Dashboard:
+  /// 
+  /// 1. Go to Storage in Supabase Dashboard
+  /// 2. Click "New Bucket"
+  /// 3. Name: car-images
+  /// 4. Public: Yes (for read access)
+  /// 5. Set RLS policies:
+  ///    - Allow public SELECT (read)
+  ///    - Allow authenticated INSERT, UPDATE, DELETE
+  static Future<void> setupStorageBucket() async {
+    try {
+      // Note: Bucket creation typically requires admin privileges
+      // This is here for reference but should be done via Supabase Dashboard
+      print('⚠️  Please create bucket "$carImagesBucket" in Supabase Dashboard');
+      print('   Storage -> New Bucket -> Name: $carImagesBucket -> Public: Yes');
+    } catch (e) {
+      print('❌ Error setting up storage bucket: $e');
+      rethrow;
+    }
+  }
 }

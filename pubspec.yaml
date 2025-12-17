@@ -16,6 +16,9 @@ dependencies:
   intl: ^0.20.2
   cached_network_image: ^3.3.0
   image_picker: ^1.0.7
+  image: ^4.1.7
+  path: ^1.8.3
+  uuid: ^4.3.3
 
   # UI & visuals
   fl_chart: ^1.1.1
