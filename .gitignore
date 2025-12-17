@@ -43,3 +43,12 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+# Android build outputs (CRITICAL)
+android/app/build/
+android/local.properties
+*.apk
+*.aab
+*.so
+
+# Gradle
+android/.gradle/
