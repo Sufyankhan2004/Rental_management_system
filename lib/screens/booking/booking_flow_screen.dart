@@ -19,7 +19,7 @@ import '../../widgets/custom_text_field.dart';
 class BookingFlowScreen extends StatefulWidget {
   final Car car;
 
-  const BookingFlowScreen({Key? key, required this.car}) : super(key: key);
+  const BookingFlowScreen({super.key, required this.car});
 
   @override
   State<BookingFlowScreen> createState() => _BookingFlowScreenState();
@@ -40,8 +40,8 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
   final _pickupLocationController = TextEditingController();
   final _dropoffLocationController = TextEditingController();
   
-  DateTime _pickupDate = DateTime.now().add(const Duration(days: 1));
-  DateTime _dropoffDate = DateTime.now().add(const Duration(days: 4));
+  final DateTime _pickupDate = DateTime.now().add(const Duration(days: 1));
+  final DateTime _dropoffDate = DateTime.now().add(const Duration(days: 4));
   bool _insuranceIncluded = false;
   
   // Payment
@@ -478,7 +478,7 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
                 color: AppTheme.accentColor,
               ),
             ),
-            activeColor: AppTheme.primaryColor,
+            activeThumbColor: AppTheme.primaryColor,
           ),
         ),
         const SizedBox(height: 16),

@@ -1,11 +1,8 @@
-// ============================================
-// UPDATED: lib/screens/admin/manage_cars_screen.dart
-// ============================================
-// Add image upload functionality to your admin screen
-
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'dart:typed_data';
 import '../../config/app_theme.dart';
 import '../../models/car_model.dart';
 import '../../services/car_service.dart';
@@ -131,7 +128,6 @@ class _ManageCarsScreenState extends State<ManageCarsScreen> {
       ),
       child: Column(
         children: [
-          // Car image preview
           if (car.imageUrl != null && car.imageUrl!.isNotEmpty)
             ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
@@ -149,7 +145,6 @@ class _ManageCarsScreenState extends State<ManageCarsScreen> {
                 },
               ),
             ),
-          
           ListTile(
             contentPadding: const EdgeInsets.all(16),
             leading: Container(
@@ -274,6 +269,8 @@ class _ManageCarsScreenState extends State<ManageCarsScreen> {
     final fuelTypeController = TextEditingController(text: 'Petrol');
     final imageUrlController = TextEditingController();
     File? selectedImage;
+    Uint8List? selectedImageBytes;
+    bool isUploading = false;
 
     showDialog(
       context: context,
@@ -286,14 +283,30 @@ class _ManageCarsScreenState extends State<ManageCarsScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Image picker
-                  if (selectedImage != null)
+                  // Image picker with upload indicator
+                  if (isUploading)
+                    Container(
+                      height: 150,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 16),
+                          Text('Uploading image...'),
+                        ],
+                      ),
+                    )
+                  else if (selectedImageBytes != null)
                     Stack(
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child: Image.file(
-                            selectedImage!,
+                          child: Image.memory(
+                            selectedImageBytes!,
                             height: 150,
                             width: double.infinity,
                             fit: BoxFit.cover,
@@ -308,7 +321,10 @@ class _ManageCarsScreenState extends State<ManageCarsScreen> {
                               backgroundColor: Colors.black54,
                             ),
                             onPressed: () {
-                              setDialogState(() => selectedImage = null);
+                              setDialogState(() {
+                                selectedImage = null;
+                                selectedImageBytes = null;
+                              });
                             },
                           ),
                         ),
@@ -317,14 +333,45 @@ class _ManageCarsScreenState extends State<ManageCarsScreen> {
                   else
                     InkWell(
                       onTap: () async {
-                        final ImagePicker picker = ImagePicker();
-                        final XFile? image = await picker.pickImage(
-                          source: ImageSource.gallery,
+                        final ImageSource? source = await showDialog<ImageSource>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Select Image Source'),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                ListTile(
+                                  leading: const Icon(Icons.photo_library),
+                                  title: const Text('Gallery'),
+                                  onTap: () => Navigator.pop(context, ImageSource.gallery),
+                                ),
+                                if (!kIsWeb)
+                                  ListTile(
+                                    leading: const Icon(Icons.camera_alt),
+                                    title: const Text('Camera'),
+                                    onTap: () => Navigator.pop(context, ImageSource.camera),
+                                  ),
+                              ],
+                            ),
+                          ),
                         );
-                        if (image != null) {
-                          setDialogState(() {
-                            selectedImage = File(image.path);
-                          });
+
+                        if (source != null) {
+                          final ImagePicker picker = ImagePicker();
+                          final XFile? image = await picker.pickImage(
+                            source: source,
+                            maxWidth: 1920,
+                            maxHeight: 1080,
+                            imageQuality: 85,
+                          );
+                          if (image != null) {
+                            final bytes = await image.readAsBytes();
+                            setDialogState(() {
+                              selectedImage = kIsWeb ? null : File(image.path);
+                              selectedImageBytes = bytes;
+                              imageUrlController.clear();
+                            });
+                          }
                         }
                       },
                       child: Container(
@@ -337,13 +384,20 @@ class _ManageCarsScreenState extends State<ManageCarsScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.add_photo_alternate, 
-                                size: 50, 
-                                color: Colors.grey[600]),
+                            Icon(Icons.add_photo_alternate,
+                                size: 50, color: Colors.grey[600]),
                             const SizedBox(height: 8),
                             Text(
                               'Add Car Image',
                               style: TextStyle(color: Colors.grey[600]),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Tap to select from gallery${kIsWeb ? '' : ' or camera'}',
+                              style: TextStyle(
+                                color: Colors.grey[500],
+                                fontSize: 12,
+                              ),
                             ),
                           ],
                         ),
@@ -406,67 +460,75 @@ class _ManageCarsScreenState extends State<ManageCarsScreen> {
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: isUploading ? null : () => Navigator.pop(context),
                 child: const Text('Cancel'),
               ),
               ElevatedButton(
-                onPressed: () async {
-                  if (nameController.text.isEmpty ||
-                      brandController.text.isEmpty ||
-                      priceController.text.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Please fill in all required fields'),
-                        backgroundColor: AppTheme.errorColor,
-                      ),
-                    );
-                    return;
-                  }
+                onPressed: isUploading
+                    ? null
+                    : () async {
+                        if (nameController.text.isEmpty ||
+                            brandController.text.isEmpty ||
+                            priceController.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Please fill in all required fields'),
+                              backgroundColor: AppTheme.errorColor,
+                            ),
+                          );
+                          return;
+                        }
 
-                  try {
-                    String? imageUrl = imageUrlController.text.isNotEmpty 
-                        ? imageUrlController.text 
-                        : null;
+                        setDialogState(() => isUploading = true);
 
-                    // TODO: Upload image to Supabase storage if selectedImage is not null
-                    // For now, we'll just use the URL
+                        try {
+                          String? imageUrl = imageUrlController.text.isNotEmpty
+                              ? imageUrlController.text
+                              : null;
 
-                    final car = Car(
-                      id: '',
-                      name: nameController.text,
-                      brand: brandController.text,
-                      type: typeController.text,
-                      pricePerDay: double.parse(priceController.text),
-                      imageUrl: imageUrl,
-                      seats: int.tryParse(seatsController.text) ?? 4,
-                      transmission: transmissionController.text,
-                      fuelType: fuelTypeController.text,
-                      available: true,
-                      features: ['Air Conditioning', 'Bluetooth', 'GPS'],
-                      createdAt: DateTime.now(),
-                    );
+                          final car = Car(
+                            id: '',
+                            name: nameController.text,
+                            brand: brandController.text,
+                            type: typeController.text,
+                            pricePerDay: double.parse(priceController.text),
+                            imageUrl: imageUrl,
+                            seats: int.tryParse(seatsController.text) ?? 4,
+                            transmission: transmissionController.text,
+                            fuelType: fuelTypeController.text,
+                            available: true,
+                            features: ['Air Conditioning', 'Bluetooth', 'GPS'],
+                            createdAt: DateTime.now(),
+                          );
 
-                    await _carService.addCar(car);
-                    
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Car added successfully'),
-                          backgroundColor: AppTheme.successColor,
-                        ),
-                      );
-                      _loadCars();
-                    }
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Error: $e'),
-                        backgroundColor: AppTheme.errorColor,
-                      ),
-                    );
-                  }
-                },
+                          await _carService.addCar(car, imageFile: selectedImage);
+
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  selectedImage != null
+                                      ? 'Car added with image successfully'
+                                      : 'Car added successfully',
+                                ),
+                                backgroundColor: AppTheme.successColor,
+                              ),
+                            );
+                            _loadCars();
+                          }
+                        } catch (e) {
+                          setDialogState(() => isUploading = false);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Error: $e'),
+                                backgroundColor: AppTheme.errorColor,
+                              ),
+                            );
+                          }
+                        }
+                      },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryColor,
                 ),
@@ -481,80 +543,232 @@ class _ManageCarsScreenState extends State<ManageCarsScreen> {
 
   void _showEditCarDialog(Car car) {
     final nameController = TextEditingController(text: car.name);
-    final priceController = TextEditingController(
-      text: car.pricePerDay.toString(),
-    );
+    final priceController = TextEditingController(text: car.pricePerDay.toString());
     final imageUrlController = TextEditingController(text: car.imageUrl);
+    File? selectedImage;
+    Uint8List? selectedImageBytes;
+    bool isUploading = false;
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Edit Car'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CustomTextField(
-              controller: nameController,
-              label: 'Car Name',
-              prefixIcon: Icons.directions_car,
-            ),
-            const SizedBox(height: 16),
-            CustomTextField(
-              controller: priceController,
-              label: 'Price per Day',
-              prefixIcon: Icons.attach_money,
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 16),
-            CustomTextField(
-              controller: imageUrlController,
-              label: 'Image URL',
-              prefixIcon: Icons.link,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              try {
-                await _carService.updateCar(car.id, {
-                  'name': nameController.text,
-                  'price_per_day': double.parse(priceController.text),
-                  'image_url': imageUrlController.text.isNotEmpty 
-                      ? imageUrlController.text 
-                      : null,
-                });
-
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Car updated successfully'),
-                      backgroundColor: AppTheme.successColor,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: const Text('Edit Car'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Image preview/picker
+                  if (isUploading)
+                    Container(
+                      height: 150,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 16),
+                          Text('Uploading image...'),
+                        ],
+                      ),
+                    )
+                  else if (selectedImageBytes != null)
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.memory(
+                            selectedImageBytes!,
+                            height: 150,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: IconButton(
+                            icon: const Icon(Icons.close, color: Colors.white),
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.black54,
+                            ),
+                            onPressed: () {
+                              setDialogState(() {
+                                selectedImage = null;
+                                selectedImageBytes = null;
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    )
+                  else if (car.imageUrl != null && car.imageUrl!.isNotEmpty)
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            car.imageUrl!,
+                            height: 150,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                height: 150,
+                                color: Colors.grey[200],
+                                child: const Icon(Icons.broken_image, size: 50),
+                              );
+                            },
+                          ),
+                        ),
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.white),
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.black54,
+                            ),
+                            onPressed: () async {
+                              final ImagePicker picker = ImagePicker();
+                              final XFile? image = await picker.pickImage(
+                                source: ImageSource.gallery,
+                                maxWidth: 1920,
+                                maxHeight: 1080,
+                                imageQuality: 85,
+                              );
+                              if (image != null) {
+                                final bytes = await image.readAsBytes();
+                                setDialogState(() {
+                                  selectedImage = kIsWeb ? null : File(image.path);
+                                  selectedImageBytes = bytes;
+                                });
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    InkWell(
+                      onTap: () async {
+                        final ImagePicker picker = ImagePicker();
+                        final XFile? image = await picker.pickImage(
+                          source: ImageSource.gallery,
+                          maxWidth: 1920,
+                          maxHeight: 1080,
+                          imageQuality: 85,
+                        );
+                        if (image != null) {
+                          final bytes = await image.readAsBytes();
+                          setDialogState(() {
+                            selectedImage = kIsWeb ? null : File(image.path);
+                            selectedImageBytes = bytes;
+                          });
+                        }
+                      },
+                      child: Container(
+                        height: 150,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[400]!),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add_photo_alternate,
+                                size: 50, color: Colors.grey[600]),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Add Car Image',
+                              style: TextStyle(color: Colors.grey[600]),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  );
-                  _loadCars();
-                }
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Error: $e'),
-                    backgroundColor: AppTheme.errorColor,
+                  const SizedBox(height: 16),
+                  CustomTextField(
+                    controller: nameController,
+                    label: 'Car Name',
+                    prefixIcon: Icons.directions_car,
                   ),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryColor,
+                  const SizedBox(height: 16),
+                  CustomTextField(
+                    controller: priceController,
+                    label: 'Price per Day',
+                    prefixIcon: Icons.attach_money,
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 16),
+                  CustomTextField(
+                    controller: imageUrlController,
+                    label: 'Image URL',
+                    prefixIcon: Icons.link,
+                  ),
+                ],
+              ),
             ),
-            child: const Text('Update'),
-          ),
-        ],
+            actions: [
+              TextButton(
+                onPressed: isUploading ? null : () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: isUploading
+                    ? null
+                    : () async {
+                        setDialogState(() => isUploading = true);
+                        try {
+                          await _carService.updateCar(
+                            car.id,
+                            {
+                              'name': nameController.text,
+                              'price_per_day': double.parse(priceController.text),
+                              'image_url': imageUrlController.text.isNotEmpty
+                                  ? imageUrlController.text
+                                  : null,
+                            },
+                            newImageFile: selectedImage,
+                            oldImageUrl: car.imageUrl,
+                          );
+
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Car updated successfully'),
+                                backgroundColor: AppTheme.successColor,
+                              ),
+                            );
+                            _loadCars();
+                          }
+                        } catch (e) {
+                          setDialogState(() => isUploading = false);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Error: $e'),
+                                backgroundColor: AppTheme.errorColor,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                ),
+                child: const Text('Update'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -610,7 +824,7 @@ class _ManageCarsScreenState extends State<ManageCarsScreen> {
 
     if (confirm == true) {
       try {
-        await _carService.deleteCar(car.id);
+        await _carService.deleteCar(car.id, imageUrl: car.imageUrl);
         _loadCars();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

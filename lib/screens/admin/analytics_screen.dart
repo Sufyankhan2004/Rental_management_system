@@ -9,7 +9,7 @@ import '../../services/analytics_service.dart';
 import '../../widgets/loading_widget.dart';
 
 class AnalyticsScreen extends StatefulWidget {
-  const AnalyticsScreen({Key? key}) : super(key: key);
+  const AnalyticsScreen({super.key});
 
   @override
   State<AnalyticsScreen> createState() => _AnalyticsScreenState();
@@ -240,7 +240,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 timeAgo,
                 _getStatusColor(status),
               );
-            }).toList(),
+            }),
         ],
       ),
     );

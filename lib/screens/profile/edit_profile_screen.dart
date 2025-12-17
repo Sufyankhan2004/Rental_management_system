@@ -12,7 +12,7 @@ import '../../widgets/custom_text_field.dart';
 import '../../utils/validators.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({Key? key}) : super(key: key);
+  const EditProfileScreen({super.key});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
