@@ -6,13 +6,13 @@ id("dev.flutter.flutter-gradle-plugin")
 
 android {
 namespace = "com.example.car_rental"
-compileSdk = 34
+compileSdk = 36
 
 ```
 defaultConfig {
     applicationId = "com.example.car_rental"
     minSdk = flutter.minSdkVersion
-    targetSdk = 34
+    targetSdk = 35
     versionCode = 1
     versionName = "1.0"
 }
