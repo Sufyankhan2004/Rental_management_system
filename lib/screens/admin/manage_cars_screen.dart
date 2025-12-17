@@ -9,11 +9,8 @@ import 'dart:io';
 import '../../config/app_theme.dart';
 import '../../models/car_model.dart';
 import '../../services/car_service.dart';
-import '../../config/supabase_config.dart';
-import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/loading_widget.dart';
-import '../../utils/validators.dart';
 
 class ManageCarsScreen extends StatefulWidget {
   const ManageCarsScreen({super.key});

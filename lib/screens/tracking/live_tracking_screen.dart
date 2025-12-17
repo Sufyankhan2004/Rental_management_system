@@ -5,13 +5,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../../config/app_theme.dart';
 import '../../config/supabase_config.dart';
 
 class LiveTrackingScreen extends StatefulWidget {
   final String bookingId;
 
-  const LiveTrackingScreen({Key? key, required this.bookingId}) : super(key: key);
+  const LiveTrackingScreen({super.key, required this.bookingId});
 
   @override
   State<LiveTrackingScreen> createState() => _LiveTrackingScreenState();
@@ -39,33 +38,31 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
           .eq('id', widget.bookingId)
           .single();
 
-      if (booking != null) {
-        setState(() {
-          if (booking['current_latitude'] != null && booking['current_longitude'] != null) {
-            _currentCarLocation = LatLng(
-              booking['current_latitude'].toDouble(),
-              booking['current_longitude'].toDouble(),
-            );
-          }
-          
-          if (booking['pickup_latitude'] != null && booking['pickup_longitude'] != null) {
-            _pickupLocation = LatLng(
-              booking['pickup_latitude'].toDouble(),
-              booking['pickup_longitude'].toDouble(),
-            );
-          }
-          
-          if (booking['dropoff_latitude'] != null && booking['dropoff_longitude'] != null) {
-            _dropoffLocation = LatLng(
-              booking['dropoff_latitude'].toDouble(),
-              booking['dropoff_longitude'].toDouble(),
-            );
-          }
-          
-          _updateMarkers();
-        });
-      }
-    } catch (e) {
+      setState(() {
+        if (booking['current_latitude'] != null && booking['current_longitude'] != null) {
+          _currentCarLocation = LatLng(
+            booking['current_latitude'].toDouble(),
+            booking['current_longitude'].toDouble(),
+          );
+        }
+        
+        if (booking['pickup_latitude'] != null && booking['pickup_longitude'] != null) {
+          _pickupLocation = LatLng(
+            booking['pickup_latitude'].toDouble(),
+            booking['pickup_longitude'].toDouble(),
+          );
+        }
+        
+        if (booking['dropoff_latitude'] != null && booking['dropoff_longitude'] != null) {
+          _dropoffLocation = LatLng(
+            booking['dropoff_latitude'].toDouble(),
+            booking['dropoff_longitude'].toDouble(),
+          );
+        }
+        
+        _updateMarkers();
+      });
+        } catch (e) {
       print('Error loading tracking data: $e');
     }
   }

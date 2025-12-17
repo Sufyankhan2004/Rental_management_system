@@ -11,9 +11,9 @@ class SimpleLocationPicker extends StatefulWidget {
   final Function(String, double, double) onLocationSelected;
 
   const SimpleLocationPicker({
-    Key? key,
+    super.key,
     required this.onLocationSelected,
-  }) : super(key: key);
+  });
 
   @override
   State<SimpleLocationPicker> createState() => _SimpleLocationPickerState();

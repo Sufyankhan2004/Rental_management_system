@@ -52,8 +52,7 @@ class Booking {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
+    final json = {
       'user_id': userId,
       'car_id': carId,
       'pickup_date': pickupDate.toIso8601String(),
@@ -65,6 +64,13 @@ class Booking {
       'insurance_included': insuranceIncluded,
       'created_at': createdAt.toIso8601String(),
     };
+    
+    // Only include id if it's not empty (for updates)
+    if (id.isNotEmpty) {
+      json['id'] = id;
+    }
+    
+    return json;
   }
 
   int get durationInDays {

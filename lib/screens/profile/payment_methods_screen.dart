@@ -8,12 +8,10 @@ import '../../config/app_theme.dart';
 import '../../services/auth_service.dart';
 import '../../services/payment_service.dart';
 import '../../models/payment_method_model.dart';
-import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
-import '../../utils/validators.dart';
 
 class PaymentMethodsScreen extends StatefulWidget {
-  const PaymentMethodsScreen({Key? key}) : super(key: key);
+  const PaymentMethodsScreen({super.key});
 
   @override
   State<PaymentMethodsScreen> createState() => _PaymentMethodsScreenState();

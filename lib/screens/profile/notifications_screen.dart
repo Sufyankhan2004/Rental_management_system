@@ -9,7 +9,7 @@ import '../../config/supabase_config.dart';
 import '../../services/auth_service.dart';
 
 class NotificationsScreen extends StatefulWidget {
-  const NotificationsScreen({Key? key}) : super(key: key);
+  const NotificationsScreen({super.key});
 
   @override
   State<NotificationsScreen> createState() => _NotificationsScreenState();
@@ -192,7 +192,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
           child: Icon(icon, color: AppTheme.primaryColor),
         ),
-        activeColor: AppTheme.primaryColor,
+        activeThumbColor: AppTheme.primaryColor,
       ),
     );
   }

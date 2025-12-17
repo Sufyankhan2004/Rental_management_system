@@ -6,17 +6,16 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../config/app_theme.dart';
 
 class LocationPicker extends StatefulWidget {
   final LatLng? initialLocation;
   final Function(LatLng, String) onLocationSelected;
 
   const LocationPicker({
-    Key? key,
+    super.key,
     this.initialLocation,
     required this.onLocationSelected,
-  }) : super(key: key);
+  });
 
   @override
   State<LocationPicker> createState() => _LocationPickerState();

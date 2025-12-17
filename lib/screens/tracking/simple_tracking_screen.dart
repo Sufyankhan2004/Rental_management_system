@@ -12,10 +12,10 @@ class SimpleTrackingScreen extends StatefulWidget {
   final String carName;
 
   const SimpleTrackingScreen({
-    Key? key,
+    super.key,
     required this.bookingId,
     required this.carName,
-  }) : super(key: key);
+  });
 
   @override
   State<SimpleTrackingScreen> createState() => _SimpleTrackingScreenState();

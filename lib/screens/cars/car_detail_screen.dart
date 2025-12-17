@@ -163,17 +163,17 @@ class CarDetailScreen extends StatelessWidget {
         child: SafeArea(
           child: Row(
             children: [
-              const Column(
+              Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Price',
                     style: TextStyle(color: Colors.grey, fontSize: 14),
                   ),
                   Text(
-                    '\${car.pricePerDay.toStringAsFixed(0)}/day',
-                    style: TextStyle(
+                    '\$${car.pricePerDay.toStringAsFixed(0)}/day',
+                    style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
                       color: AppTheme.primaryColor,

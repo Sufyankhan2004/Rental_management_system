@@ -12,6 +12,7 @@ import '../../models/payment_method_model.dart';
 import '../../services/booking_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/payment_service.dart';
+import '../../utils/validators.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 
@@ -30,6 +31,7 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
   final _authService = AuthService();
   final _paymentService = PaymentService();
   bool _isLoading = false;
+  final _formKey = GlobalKey<FormState>();
 
   // Form Controllers
   final _fullNameController = TextEditingController();
@@ -224,15 +226,20 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text('Booking failed: ${e.toString()}'),
             backgroundColor: AppTheme.errorColor,
+            duration: const Duration(seconds: 5),
           ),
         );
       }
+      // Re-throw to help with debugging in development
+      debugPrint('Booking error: $e');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+      }
     }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -301,9 +308,14 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
                   Expanded(
                     flex: 2,
                     child: CustomButton(
-                      text: _currentStep == 2 ? 'Confirm & Pay' : 'Continue',
+                      text: _currentStep == 2 ? 'Pay and Confirm' : 'Continue',
                       onPressed: () {
-                        if (_currentStep < 2) {
+                        if (_currentStep == 0) {
+                          // Validate form on first step
+                          if (_formKey.currentState?.validate() ?? false) {
+                            setState(() => _currentStep++);
+                          }
+                        } else if (_currentStep < 2) {
                           setState(() => _currentStep++);
                         } else {
                           _completeBooking();
@@ -379,44 +391,52 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
   }
 
   Widget _buildPersonalDetails() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Personal Information', style: AppTheme.heading2),
-        const SizedBox(height: 24),
-        CustomTextField(
-          controller: _fullNameController,
-          label: 'Full Name',
-          prefixIcon: Icons.person_outline,
-        ),
-        const SizedBox(height: 16),
-        CustomTextField(
-          controller: _phoneController,
-          label: 'Phone Number',
-          prefixIcon: Icons.phone_outlined,
-          keyboardType: TextInputType.phone,
-        ),
-        const SizedBox(height: 16),
-        CustomTextField(
-          controller: _licenseController,
-          label: 'License Number',
-          prefixIcon: Icons.credit_card_outlined,
-        ),
-        const SizedBox(height: 32),
-        const Text('Rental Details', style: AppTheme.heading3),
-        const SizedBox(height: 16),
-        CustomTextField(
-          controller: _pickupLocationController,
-          label: 'Pickup Location',
-          prefixIcon: Icons.location_on_outlined,
-        ),
-        const SizedBox(height: 16),
-        CustomTextField(
-          controller: _dropoffLocationController,
-          label: 'Dropoff Location',
-          prefixIcon: Icons.flag_outlined,
-        ),
-      ],
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Personal Information', style: AppTheme.heading2),
+          const SizedBox(height: 24),
+          CustomTextField(
+            controller: _fullNameController,
+            label: 'Full Name',
+            prefixIcon: Icons.person_outline,
+            validator: Validators.validateName,
+          ),
+          const SizedBox(height: 16),
+          CustomTextField(
+            controller: _phoneController,
+            label: 'Phone Number',
+            prefixIcon: Icons.phone_outlined,
+            keyboardType: TextInputType.phone,
+            validator: Validators.validatePhone,
+          ),
+          const SizedBox(height: 16),
+          CustomTextField(
+            controller: _licenseController,
+            label: 'License Number',
+            prefixIcon: Icons.credit_card_outlined,
+            validator: Validators.validateLicenseNumber,
+          ),
+          const SizedBox(height: 32),
+          const Text('Rental Details', style: AppTheme.heading3),
+          const SizedBox(height: 16),
+          CustomTextField(
+            controller: _pickupLocationController,
+            label: 'Pickup Location',
+            prefixIcon: Icons.location_on_outlined,
+            validator: (value) => Validators.validateRequired(value, 'Pickup location'),
+          ),
+          const SizedBox(height: 16),
+          CustomTextField(
+            controller: _dropoffLocationController,
+            label: 'Dropoff Location',
+            prefixIcon: Icons.flag_outlined,
+            validator: (value) => Validators.validateRequired(value, 'Dropoff location'),
+          ),
+        ],
+      ),
     );
   }
 
