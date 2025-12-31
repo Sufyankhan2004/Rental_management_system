@@ -1,8 +1,3 @@
-// ============================================
-// FILE 17: screens/cars/car_list_screen.dart
-// ============================================
-// Create new file: lib/screens/cars/car_list_screen.dart
-
 import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
 import '../../models/car_model.dart';
@@ -66,59 +61,61 @@ class _CarListScreenState extends State<CarListScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Type Filter
-          Container(
-            height: 60,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: [
-                _buildFilterChip('All'),
-                _buildFilterChip('Electric'),
-                _buildFilterChip('SUV'),
-                _buildFilterChip('Sedan'),
-                _buildFilterChip('Sports'),
-                _buildFilterChip('Luxury'),
-              ],
-            ),
-          ),
-
-          // Cars Grid
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _filteredCars.isEmpty
-                    ? const Center(child: Text('No cars available'))
-                    : GridView.builder(
-                        padding: const EdgeInsets.all(16),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 0.68,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                        ),
-                        itemCount: _filteredCars.length,
-                        itemBuilder: (context, index) {
-                          return CarCard(
-                            car: _filteredCars[index],
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => CarDetailScreen(
-                                    car: _filteredCars[index],
-                                  ),
-                                ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return Column(
+            children: [
+              // Type Filter
+              SizedBox(
+                height: 60,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  children: [
+                    _buildFilterChip('All'),
+                    _buildFilterChip('Electric'),
+                    _buildFilterChip('SUV'),
+                    _buildFilterChip('Sedan'),
+                    _buildFilterChip('Sports'),
+                    _buildFilterChip('Luxury'),
+                  ],
+                ),
+              ),
+              // Cars Grid
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _filteredCars.isEmpty
+                        ? const Center(child: Text('No cars available'))
+                        : GridView.builder(
+                            padding: const EdgeInsets.all(16),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              childAspectRatio: 0.68,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                            ),
+                            itemCount: _filteredCars.length,
+                            itemBuilder: (context, index) {
+                              return CarCard(
+                                car: _filteredCars[index],
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => CarDetailScreen(
+                                        car: _filteredCars[index],
+                                      ),
+                                    ),
+                                  );
+                                },
                               );
                             },
-                          );
-                        },
-                      ),
-          ),
-        ],
+                          ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

@@ -1,7 +1,3 @@
-// ============================================
-// FIXED: lib/widgets/car_card.dart
-// ============================================
-// Replace your existing car_card.dart with this:
 
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -88,7 +84,7 @@ class CarCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '\$${car.pricePerDay.toStringAsFixed(0)}',
+                                '\PKR ${car.pricePerDay.toStringAsFixed(0)}',
                                 style: const TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,

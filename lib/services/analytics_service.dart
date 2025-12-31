@@ -1,7 +1,3 @@
-// ============================================
-// FIXED: lib/services/analytics_service.dart
-// ============================================
-
 import '../config/supabase_config.dart';
 
 class AnalyticsService {

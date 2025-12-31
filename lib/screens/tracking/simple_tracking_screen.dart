@@ -1,8 +1,3 @@
-// ============================================
-// DUMMY MAP VIEW FOR CAR TRACKING
-// ============================================
-// Create new file: lib/screens/tracking/simple_tracking_screen.dart
-
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import '../../config/app_theme.dart';

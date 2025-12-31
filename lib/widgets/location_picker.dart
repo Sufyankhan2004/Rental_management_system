@@ -1,8 +1,3 @@
-// ============================================
-// PART 4: Location Picker with Map
-// ============================================
-// Create new file: lib/widgets/location_picker.dart
-// Add to pubspec.yaml: google_maps_flutter: ^2.5.0
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';

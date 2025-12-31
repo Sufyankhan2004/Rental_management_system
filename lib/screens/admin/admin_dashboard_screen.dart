@@ -1,8 +1,3 @@
-// ============================================
-// FILE 23: screens/admin/admin_dashboard_screen.dart
-// ============================================
-// Create new file: lib/screens/admin/admin_dashboard_screen.dart
-
 import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
 import 'manage_cars_screen.dart';

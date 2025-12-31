@@ -1,8 +1,3 @@
-// ============================================
-// FILE 20: screens/booking/booking_history_screen.dart
-// ============================================
-// Create new file: lib/screens/booking/booking_history_screen.dart
-
 import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
 import '../../models/booking_model.dart';

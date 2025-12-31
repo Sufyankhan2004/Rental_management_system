@@ -1,12 +1,11 @@
-// ============================================
-// FILE: lib/screens/auth/register_screen.dart
-// ============================================
-// Complete, error-free registration screen
-
+import 'package:car_rental_app/config/supabase_config.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../config/app_theme.dart';
 import '../../services/auth_service.dart';
+import '../../services/image_picker_service.dart';
+import 'dart:io';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 
@@ -23,6 +22,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _authService = AuthService();
+  final _imagePickerService = ImagePickerService();
+  File? _selectedImage;
+  String? _uploadedImageUrl;
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -37,11 +39,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _signUp() async {
-    // Validation
     if (_fullNameController.text.isEmpty ||
         _emailController.text.isEmpty ||
-        _passwordController.text.isEmpty) {
-      _showError('Please fill in all fields');
+        _passwordController.text.isEmpty ||
+        _selectedImage == null) {
+      _showError('Please fill in all fields and select a profile picture');
       return;
     }
 
@@ -58,62 +60,67 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Attempt to sign up
+      if (kIsWeb) {
+        _showError('Image upload is not supported on web. Please use the mobile app.');
+        return;
+      }
+
+      final fileName =
+          '${DateTime.now().millisecondsSinceEpoch}_${_emailController.text.trim().replaceAll('@', '_').replaceAll('.', '_')}.jpg';
+
+      final storageResponse = await Supabase.instance.client.storage
+          .from('profile-images')
+          .upload(fileName, _selectedImage!);
+
+      // storageResponse is a String (the path or null/empty on error)
+      if (storageResponse == null || storageResponse.isEmpty) {
+        throw Exception('Image upload failed');
+      }
+
+      final imageUrl = Supabase.instance.client.storage
+          .from('profile-images')
+          .getPublicUrl(fileName);
+      _uploadedImageUrl = imageUrl;
+
       final response = await _authService.signUp(
         _emailController.text.trim(),
         _passwordController.text,
         _fullNameController.text.trim(),
       );
-      
+
+      if (response.user == null) {
+        throw Exception('User creation failed');
+      }
+
+      await Supabase.instance.client.from('user_profiles').insert({
+        'id': response.user!.id,
+        'full_name': _fullNameController.text.trim(),
+        'profile_image_url': _uploadedImageUrl,
+      });
+
       if (mounted) {
-        if (response.user != null) {
-          // Success - show message
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Account created! Please check your email to verify.'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 4),
-            ),
-          );
-          
-          // Wait a moment then navigate back
-          await Future.delayed(const Duration(seconds: 2));
-          if (mounted) {
-            Navigator.pop(context);
-          }
-        } else {
-          _showError('Registration failed. Please try again.');
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account created! Please check your email to verify.'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 4),
+          ),
+        );
+        await Future.delayed(const Duration(seconds: 2));
+        if (mounted) Navigator.pop(context);
       }
     } on AuthException catch (e) {
-      // Handle Supabase-specific errors
-      String errorMessage = 'Registration failed';
-      
-      if (e.message.contains('already registered') || 
-          e.message.contains('already been registered')) {
-        errorMessage = 'This email is already registered';
-      } else if (e.message.contains('invalid email')) {
-        errorMessage = 'Please enter a valid email address';
-      } else if (e.message.contains('weak password')) {
-        errorMessage = 'Password is too weak';
-      } else {
-        errorMessage = e.message;
-      }
-      
-      _showError(errorMessage);
+      _showError(e.message);
     } catch (e) {
-      // Handle other errors
-      _showError('An unexpected error occurred: ${e.toString()}');
+      _showError('Unexpected error: ${e.toString()}');
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   void _showError(String message) {
     if (!mounted) return;
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -148,29 +155,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Icon
-                  Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 30,
+                  GestureDetector(
+                    onTap: () async {
+                      final picked =
+                          await _imagePickerService.pickImageFromGallery();
+                      if (picked != null) {
+                        setState(() {
+                          _selectedImage = picked;
+                        });
+                      }
+                    },
+                    child: Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 30,
+                          ),
+                        ],
+                        border: Border.all(
+                          color: Colors.white,
+                          width: 3,
                         ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.person_add,
-                      size: 60,
-                      color: Colors.white,
+                        image: _selectedImage != null
+                            ? DecorationImage(
+                                image: FileImage(_selectedImage!),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                      ),
+                      child: _selectedImage == null
+                          ? const Icon(
+                              Icons.add_a_photo,
+                              size: 60,
+                              color: Colors.white,
+                            )
+                          : null,
                     ),
                   ),
                   const SizedBox(height: 30),
-
-                  // Title
                   const Text(
                     'Create Account',
                     style: TextStyle(
@@ -188,8 +215,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                   const SizedBox(height: 40),
-
-                  // Form Card
                   Container(
                     constraints: const BoxConstraints(maxWidth: 400),
                     decoration: BoxDecoration(
@@ -230,7 +255,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   : Icons.visibility_off_outlined,
                             ),
                             onPressed: () {
-                              setState(() => _obscurePassword = !_obscurePassword);
+                              setState(() =>
+                                  _obscurePassword = !_obscurePassword);
                             },
                           ),
                         ),
@@ -247,14 +273,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   : Icons.visibility_off_outlined,
                             ),
                             onPressed: () {
-                              setState(() =>
-                                  _obscureConfirmPassword = !_obscureConfirmPassword);
+                              setState(() => _obscureConfirmPassword =
+                                  !_obscureConfirmPassword);
                             },
                           ),
                         ),
                         const SizedBox(height: 30),
-
-                        // Register Button
                         CustomButton(
                           text: 'Create Account',
                           isLoading: _isLoading,
@@ -262,8 +286,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           gradient: AppTheme.secondaryGradient,
                         ),
                         const SizedBox(height: 20),
-
-                        // Login Link
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [

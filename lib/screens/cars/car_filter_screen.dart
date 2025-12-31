@@ -1,8 +1,3 @@
-// ============================================
-// FILE: lib/screens/cars/car_filter_screen.dart
-// ============================================
-// Create new file: lib/screens/cars/car_filter_screen.dart
-
 import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
 import '../../utils/constants.dart';

@@ -1,8 +1,3 @@
-// ============================================
-// PART 3: Updated Analytics Screen (Real Data)
-// ============================================
-// Replace lib/screens/admin/analytics_screen.dart
-
 import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
 import '../../services/analytics_service.dart';

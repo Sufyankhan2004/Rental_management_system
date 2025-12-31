@@ -1,8 +1,3 @@
-// ============================================
-// FILE 15: screens/home/search_screen.dart
-// ============================================
-// Create new file: lib/screens/home/search_screen.dart
-
 import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
 import '../../models/car_model.dart';
@@ -88,7 +83,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                     ),
                                   ),
                                   Text(
-                                    'Dream Car',
+                                    'Dream Gadi 🏎',
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 36,

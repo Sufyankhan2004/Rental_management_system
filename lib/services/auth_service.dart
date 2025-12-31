@@ -1,8 +1,3 @@
-// ============================================
-// UPDATED AUTH SERVICE - Better Error Handling
-// ============================================
-// Replace your lib/services/auth_service.dart with this:
-
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/supabase_config.dart';
 

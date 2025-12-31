@@ -1,7 +1,3 @@
-// ============================================
-// FILE 4: models/car_model.dart
-// ============================================
-// Create new file: lib/models/car_model.dart
 
 class Car {
   final String id;

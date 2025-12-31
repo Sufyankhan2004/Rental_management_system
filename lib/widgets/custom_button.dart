@@ -1,7 +1,3 @@
-// ============================================
-// FILE 11: widgets/custom_button.dart
-// ============================================
-// Create new file: lib/widgets/custom_button.dart
 
 import 'package:flutter/material.dart';
 import '../config/app_theme.dart';

@@ -1,9 +1,4 @@
 
-// ============================================
-// SIMPLE LOCATION PICKER (Without Google Maps)
-// ============================================
-// Create new file: lib/widgets/simple_location_picker.dart
-
 import 'package:flutter/material.dart';
 import '../config/app_theme.dart';
 

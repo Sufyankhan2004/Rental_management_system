@@ -1,7 +1,3 @@
-// ============================================
-// FILE 25: widgets/loading_widget.dart
-// ============================================
-// Create new file: lib/widgets/loading_widget.dart
 
 import 'package:flutter/material.dart';
 import '../config/app_theme.dart';

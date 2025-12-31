@@ -1,8 +1,3 @@
-// ============================================
-// FILE: lib/utils/validators.dart
-// ============================================
-// Create new file: lib/utils/validators.dart
-
 import 'constants.dart';
 
 class Validators {

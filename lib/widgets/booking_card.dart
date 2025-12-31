@@ -1,8 +1,3 @@
-// ============================================
-// FILE 21: widgets/booking_card.dart
-// ============================================
-// Create new file: lib/widgets/booking_card.dart
-
 import 'package:flutter/material.dart';
 import '../config/app_theme.dart';
 import '../models/booking_model.dart';
@@ -123,20 +118,20 @@ class BookingCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Column(
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           'Total Price',
                           style: TextStyle(
                             color: Colors.grey,
                             fontSize: 14,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
-                          '\${booking.totalPrice.toStringAsFixed(2)}',
-                          style: TextStyle(
+                          '\$${booking.totalPrice.toStringAsFixed(2)}',
+                          style: const TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
                             color: AppTheme.primaryColor,

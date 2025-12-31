@@ -1,30 +1,14 @@
-# Flutter/Dart/Pub related
-.dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
-.packages
-pubspec.lock
+gradle-wrapper.jar
+/.gradle
+/captures/
+/gradlew
+/gradlew.bat
+/local.properties
+GeneratedPluginRegistrant.java
+.cxx/
 
-# Build outputs
-build/
-ios/Pods/
-android/.gradle/
-android/app/build/
-
-# IDE files
-.idea/
-.vscode/
-*.iml
-
-# OS files
-*.log
-*.tmp
-*.swp
-.DS_Store
-Thumbs.db
-
-# Binaries
-*.apk
-*.aab
-*.zip
-*.mp4
+# Remember to never publicly share your keystore.
+# See https://flutter.dev/to/reference-keystore
+key.properties
+**/*.keystore
+**/*.jks

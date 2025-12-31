@@ -1,8 +1,3 @@
-// ============================================
-// FILE 18: screens/cars/car_detail_screen.dart
-// ============================================
-// Create new file: lib/screens/cars/car_detail_screen.dart
-
 import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
 import '../../models/car_model.dart';
@@ -172,7 +167,7 @@ class CarDetailScreen extends StatelessWidget {
                     style: TextStyle(color: Colors.grey, fontSize: 14),
                   ),
                   Text(
-                    '\$${car.pricePerDay.toStringAsFixed(0)}/day',
+                    '\PKR ${car.pricePerDay.toStringAsFixed(0)}/day',
                     style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,

@@ -1,8 +1,3 @@
-// ============================================
-// PART 3: Payment Service
-// ============================================
-// Create new file: lib/services/payment_service.dart
-
 import '../config/supabase_config.dart';
 import '../models/payment_method_model.dart';
 

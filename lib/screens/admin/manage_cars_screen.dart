@@ -197,7 +197,7 @@ class _ManageCarsScreenState extends State<ManageCarsScreen> {
               ],
             ),
             trailing: Text(
-              '\$${car.pricePerDay.toStringAsFixed(0)}/day',
+              '\PKR ${car.pricePerDay.toStringAsFixed(0)}/day',
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -274,193 +274,220 @@ class _ManageCarsScreenState extends State<ManageCarsScreen> {
 
     showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) {
+      barrierDismissible: false, // Prevent accidental dismiss
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (builderContext, setDialogState) {
+          
+          // Function to pick image - defined inside builder to use correct context
+          Future<void> pickImage() async {
+            try {
+              final ImagePicker picker = ImagePicker();
+              
+              // On web, directly open gallery. On mobile, show source selection
+              ImageSource source = ImageSource.gallery;
+              
+              if (!kIsWeb) {
+                final selectedSource = await showDialog<ImageSource>(
+                  context: builderContext,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Select Image Source'),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.photo_library),
+                          title: const Text('Gallery'),
+                          onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.camera_alt),
+                          title: const Text('Camera'),
+                          onTap: () => Navigator.pop(ctx, ImageSource.camera),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+                
+                if (selectedSource == null) return;
+                source = selectedSource;
+              }
+
+              final XFile? image = await picker.pickImage(
+                source: source,
+                maxWidth: 1920,
+                maxHeight: 1080,
+                imageQuality: 85,
+              );
+              
+              if (image != null) {
+                final bytes = await image.readAsBytes();
+                setDialogState(() {
+                  selectedImageBytes = bytes;
+                  selectedImage = kIsWeb ? null : File(image.path);
+                  imageUrlController.clear();
+                });
+              }
+            } catch (e) {
+              print('Error picking image: $e');
+              if (builderContext.mounted) {
+                ScaffoldMessenger.of(builderContext).showSnackBar(
+                  SnackBar(
+                    content: Text('Error selecting image: $e'),
+                    backgroundColor: AppTheme.errorColor,
+                  ),
+                );
+              }
+            }
+          }
+          
           return AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             title: const Text('Add New Car'),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Image picker with upload indicator
-                  if (isUploading)
-                    Container(
-                      height: 150,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircularProgressIndicator(),
-                          SizedBox(height: 16),
-                          Text('Uploading image...'),
-                        ],
-                      ),
-                    )
-                  else if (selectedImageBytes != null)
-                    Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.memory(
-                            selectedImageBytes!,
-                            height: 150,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: IconButton(
-                            icon: const Icon(Icons.close, color: Colors.white),
-                            style: IconButton.styleFrom(
-                              backgroundColor: Colors.black54,
-                            ),
-                            onPressed: () {
-                              setDialogState(() {
-                                selectedImage = null;
-                                selectedImageBytes = null;
-                              });
-                            },
-                          ),
-                        ),
-                      ],
-                    )
-                  else
-                    InkWell(
-                      onTap: () async {
-                        final ImageSource? source = await showDialog<ImageSource>(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('Select Image Source'),
-                            content: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                ListTile(
-                                  leading: const Icon(Icons.photo_library),
-                                  title: const Text('Gallery'),
-                                  onTap: () => Navigator.pop(context, ImageSource.gallery),
-                                ),
-                                if (!kIsWeb)
-                                  ListTile(
-                                    leading: const Icon(Icons.camera_alt),
-                                    title: const Text('Camera'),
-                                    onTap: () => Navigator.pop(context, ImageSource.camera),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        );
-
-                        if (source != null) {
-                          final ImagePicker picker = ImagePicker();
-                          final XFile? image = await picker.pickImage(
-                            source: source,
-                            maxWidth: 1920,
-                            maxHeight: 1080,
-                            imageQuality: 85,
-                          );
-                          if (image != null) {
-                            final bytes = await image.readAsBytes();
-                            setDialogState(() {
-                              selectedImage = kIsWeb ? null : File(image.path);
-                              selectedImageBytes = bytes;
-                              imageUrlController.clear();
-                            });
-                          }
-                        }
-                      },
-                      child: Container(
+            content: SizedBox(
+              width: MediaQuery.of(builderContext).size.width * 0.8,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Image picker with upload indicator
+                    if (isUploading)
+                      Container(
                         height: 150,
                         decoration: BoxDecoration(
                           color: Colors.grey[200],
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey[400]!),
                         ),
-                        child: Column(
+                        child: const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.add_photo_alternate,
-                                size: 50, color: Colors.grey[600]),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Add Car Image',
-                              style: TextStyle(color: Colors.grey[600]),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Tap to select from gallery${kIsWeb ? '' : ' or camera'}',
-                              style: TextStyle(
-                                color: Colors.grey[500],
-                                fontSize: 12,
-                              ),
-                            ),
+                            CircularProgressIndicator(),
+                            SizedBox(height: 16),
+                            Text('Uploading image...'),
                           ],
                         ),
+                      )
+                    else if (selectedImageBytes != null)
+                      Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.memory(
+                              selectedImageBytes!,
+                              height: 150,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: IconButton(
+                              icon: const Icon(Icons.close, color: Colors.white),
+                              style: IconButton.styleFrom(
+                                backgroundColor: Colors.black54,
+                              ),
+                              onPressed: () {
+                                setDialogState(() {
+                                  selectedImage = null;
+                                  selectedImageBytes = null;
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      )
+                    else
+                      InkWell(
+                        onTap: pickImage,
+                        child: Container(
+                          height: 150,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey[400]!),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.add_photo_alternate,
+                                  size: 50, color: Colors.grey[600]),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Add Car Image',
+                                style: TextStyle(color: Colors.grey[600]),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                kIsWeb ? 'Tap to select from files' : 'Tap to select from gallery or camera',
+                                style: TextStyle(
+                                  color: Colors.grey[500],
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
+                    const SizedBox(height: 16),
+                    const Text('OR', style: TextStyle(color: Colors.grey)),
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      controller: imageUrlController,
+                      label: 'Image URL',
+                      prefixIcon: Icons.link,
                     ),
-                  const SizedBox(height: 16),
-                  const Text('OR', style: TextStyle(color: Colors.grey)),
-                  const SizedBox(height: 16),
-                  CustomTextField(
-                    controller: imageUrlController,
-                    label: 'Image URL',
-                    prefixIcon: Icons.link,
-                  ),
-                  const SizedBox(height: 16),
-                  CustomTextField(
-                    controller: nameController,
-                    label: 'Car Name',
-                    prefixIcon: Icons.directions_car,
-                  ),
-                  const SizedBox(height: 16),
-                  CustomTextField(
-                    controller: brandController,
-                    label: 'Brand',
-                    prefixIcon: Icons.business,
-                  ),
-                  const SizedBox(height: 16),
-                  CustomTextField(
-                    controller: typeController,
-                    label: 'Type (e.g., SUV, Sedan)',
-                    prefixIcon: Icons.category,
-                  ),
-                  const SizedBox(height: 16),
-                  CustomTextField(
-                    controller: priceController,
-                    label: 'Price per Day',
-                    prefixIcon: Icons.attach_money,
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 16),
-                  CustomTextField(
-                    controller: seatsController,
-                    label: 'Number of Seats',
-                    prefixIcon: Icons.event_seat,
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 16),
-                  CustomTextField(
-                    controller: transmissionController,
-                    label: 'Transmission',
-                    prefixIcon: Icons.settings,
-                  ),
-                  const SizedBox(height: 16),
-                  CustomTextField(
-                    controller: fuelTypeController,
-                    label: 'Fuel Type',
-                    prefixIcon: Icons.local_gas_station,
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      controller: nameController,
+                      label: 'Car Name',
+                      prefixIcon: Icons.directions_car,
+                    ),
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      controller: brandController,
+                      label: 'Brand',
+                      prefixIcon: Icons.business,
+                    ),
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      controller: typeController,
+                      label: 'Type (e.g., SUV, Sedan)',
+                      prefixIcon: Icons.category,
+                    ),
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      controller: priceController,
+                      label: 'Price per Day',
+                      prefixIcon: Icons.attach_money,
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      controller: seatsController,
+                      label: 'Number of Seats',
+                      prefixIcon: Icons.event_seat,
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      controller: transmissionController,
+                      label: 'Transmission',
+                      prefixIcon: Icons.settings,
+                    ),
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      controller: fuelTypeController,
+                      label: 'Fuel Type',
+                      prefixIcon: Icons.local_gas_station,
+                    ),
+                  ],
+                ),
               ),
             ),
             actions: [
               TextButton(
-                onPressed: isUploading ? null : () => Navigator.pop(context),
+                onPressed: isUploading ? null : () => Navigator.pop(dialogContext),
                 child: const Text('Cancel'),
               ),
               ElevatedButton(
@@ -470,7 +497,7 @@ class _ManageCarsScreenState extends State<ManageCarsScreen> {
                         if (nameController.text.isEmpty ||
                             brandController.text.isEmpty ||
                             priceController.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          ScaffoldMessenger.of(builderContext).showSnackBar(
                             const SnackBar(
                               content: Text('Please fill in all required fields'),
                               backgroundColor: AppTheme.errorColor,
@@ -501,14 +528,20 @@ class _ManageCarsScreenState extends State<ManageCarsScreen> {
                             createdAt: DateTime.now(),
                           );
 
-                          await _carService.addCar(car, imageFile: selectedImage);
+                          await _carService.addCar(
+                            car,
+                            imageFile: selectedImage,
+                            imageBytes: selectedImageBytes,
+                          );
 
-                          if (context.mounted) {
-                            Navigator.pop(context);
+                          if (dialogContext.mounted) {
+                            Navigator.pop(dialogContext);
+                          }
+                          if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  selectedImage != null
+                                  selectedImageBytes != null
                                       ? 'Car added with image successfully'
                                       : 'Car added successfully',
                                 ),
@@ -519,8 +552,8 @@ class _ManageCarsScreenState extends State<ManageCarsScreen> {
                           }
                         } catch (e) {
                           setDialogState(() => isUploading = false);
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
+                          if (builderContext.mounted) {
+                            ScaffoldMessenger.of(builderContext).showSnackBar(
                               SnackBar(
                                 content: Text('Error: $e'),
                                 backgroundColor: AppTheme.errorColor,
@@ -532,7 +565,7 @@ class _ManageCarsScreenState extends State<ManageCarsScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryColor,
                 ),
-                child: const Text('Add Car'),
+                child: Text(isUploading ? 'Adding...' : 'Add Car'),
               ),
             ],
           );

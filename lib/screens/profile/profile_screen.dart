@@ -1,10 +1,9 @@
-// ============================================
-// PART 7: UPDATED Profile Screen with Working Buttons
-// ============================================
-// Replace your existing lib/screens/profile/profile_screen.dart
 
+
+import 'package:car_rental_app/config/supabase_config.dart';
 import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
+import '../../config/supabase_config.dart';
 import '../../services/auth_service.dart';
 import '../../services/booking_service.dart';
 import '../admin/admin_dashboard_screen.dart';
@@ -20,6 +19,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+    String? _profileImageUrl;
   final _bookingService = BookingService();
   final _authService = AuthService();
   int _totalTrips = 0;
@@ -30,6 +30,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _loadUserStats();
+    _loadProfileImage();
+  }
+
+  Future<void> _loadProfileImage() async {
+    final userId = _authService.userId;
+    if (userId == null) return;
+    final profile = await SupabaseConfig.client
+        .from('user_profiles')
+        .select('profile_image_url')
+        .eq('id', userId)
+        .maybeSingle();
+    if (profile != null && mounted) {
+      setState(() {
+        _profileImageUrl = profile['profile_image_url'] as String?;
+      });
+    }
   }
 
   Future<void> _loadUserStats() async {
@@ -46,10 +62,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       booking.status == 'active'
         ).toList();
         
-        // Calculate total spent from only completed bookings for financial accuracy
-        // Only completed bookings represent finalized transactions
+        // Calculate total spent from completed, confirmed, or active bookings
         final totalSpent = bookings.where(
-          (booking) => booking.status == 'completed'
+          (booking) => booking.status == 'completed' || booking.status == 'confirmed' || booking.status == 'active'
         ).fold<double>(
           0.0,
           (sum, booking) => sum + booking.totalPrice,
@@ -111,16 +126,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ],
                         ),
-                        child: Center(
-                          child: Text(
-                            user?.email?.substring(0, 1).toUpperCase() ?? 'U',
-                            style: const TextStyle(
-                              fontSize: 48,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.primaryColor,
-                            ),
-                          ),
-                        ),
+                        child: _profileImageUrl != null && _profileImageUrl!.isNotEmpty
+                            ? ClipOval(
+                                child: Image.network(
+                                  _profileImageUrl!,
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) => Center(
+                                    child: Text(
+                                      user?.email?.substring(0, 1).toUpperCase() ?? 'U',
+                                      style: const TextStyle(
+                                        fontSize: 48,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppTheme.primaryColor,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : Center(
+                                child: Text(
+                                  user?.email?.substring(0, 1).toUpperCase() ?? 'U',
+                                  style: const TextStyle(
+                                    fontSize: 48,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                ),
+                              ),
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -156,7 +190,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
           ),
-
           // Stats Cards
           SliverToBoxAdapter(
             child: Padding(
@@ -185,7 +218,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-
                   // Menu Options - ALL WORKING NOW!
                   _buildMenuOption(
                     context,
@@ -198,9 +230,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           builder: (context) => const EditProfileScreen(),
                         ),
                       );
-                      // Refresh stats if profile was updated
+                      // Refresh stats and image if profile was updated
                       if (result == true) {
                         _loadUserStats();
+                        _loadProfileImage();
                       }
                     },
                   ),
@@ -287,7 +320,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ],
                         ),
                       );
-
                       if (confirm == true) {
                         await AuthService().signOut();
                       }
@@ -415,7 +447,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ListTile(
               leading: Icon(Icons.email, color: AppTheme.primaryColor),
               title: Text('Email'),
-              subtitle: Text('support@luxride.com'),
+              subtitle: Text('support@SufiRide.com'),
               contentPadding: EdgeInsets.zero,
             ),
             ListTile(
@@ -454,7 +486,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             Icon(Icons.info_outline, color: AppTheme.primaryColor),
             SizedBox(width: 12),
-            Text('About LuxRide'),
+            Text('About SufiRide'),
           ],
         ),
         content: const Column(
@@ -462,22 +494,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'LuxRide Car Rental',
+              'SufiRide Car Rental',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
             SizedBox(height: 8),
-            Text('Version 1.0.0'),
+            Text('Version Sufi'),
             SizedBox(height: 16),
             Text(
-              'Your premium car rental service. Book luxury and economy vehicles with ease.',
+              'Your premium Sufyan car rental service. Book luxury and economy vehicles with ease.',
               style: TextStyle(height: 1.5),
             ),
             SizedBox(height: 16),
             Text(
-              '© 2024 LuxRide. All rights reserved.',
+              '© 2025 SufiRide. All rights reserved.',
               style: TextStyle(
                 color: Colors.grey,
                 fontSize: 12,

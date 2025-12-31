@@ -1,8 +1,3 @@
-// ============================================
-// PART 5: Live Car Tracking Map
-// ============================================
-// Create new file: lib/screens/tracking/live_tracking_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../config/supabase_config.dart';

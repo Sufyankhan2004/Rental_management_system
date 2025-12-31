@@ -1,7 +1,3 @@
-// ============================================
-// FILE 12: widgets/custom_text_field.dart
-// ============================================
-// Create new file: lib/widgets/custom_text_field.dart
 
 import 'package:flutter/material.dart';
 import '../config/app_theme.dart';

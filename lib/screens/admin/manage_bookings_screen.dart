@@ -1,8 +1,3 @@
-// ============================================
-// FILE 31: screens/admin/manage_bookings_screen.dart
-// ============================================
-// Create new file: lib/screens/admin/manage_bookings_screen.dart
-
 import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
 import '../../models/booking_model.dart';
@@ -271,14 +266,15 @@ class _ManageBookingsScreenState extends State<ManageBookingsScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      '\${booking.totalPrice.toStringAsFixed(2)}',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryColor,
-                      ),
-                    ),
+                    Text(
+  '\$${booking.totalPrice.toStringAsFixed(2)}',
+  style: const TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.bold,
+    color: AppTheme.primaryColor,
+  ),
+),
+
                     if (booking.status == 'pending')
                       Row(
                         children: [

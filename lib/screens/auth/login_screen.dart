@@ -1,8 +1,3 @@
-// ============================================
-// FILE 10: screens/auth/login_screen.dart
-// ============================================
-// Create new file: lib/screens/auth/login_screen.dart
-
 import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
 import '../../services/auth_service.dart';

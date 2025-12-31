@@ -1,11 +1,7 @@
-// ============================================
-// FILE 26: utils/constants.dart
-// ============================================
-// Create new file: lib/utils/constants.dart
 
 class AppConstants {
   // App Info
-  static const String appName = 'LuxRide';
+  static const String appName = 'SufRide';
   static const String appVersion = '1.0.0';
   static const String appTagline = 'Your Premium Car Rental Service';
 

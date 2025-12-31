@@ -1,8 +1,3 @@
-// ============================================
-// PART 5: Payment Methods Screen
-// ============================================
-// Create new file: lib/screens/profile/payment_methods_screen.dart
-
 import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
 import '../../services/auth_service.dart';

@@ -1,8 +1,3 @@
-// ============================================
-// FILE 28: utils/date_formatter.dart
-// ============================================
-// Create new file: lib/utils/date_formatter.dart
-
 import 'package:intl/intl.dart';
 
 class DateFormatter {

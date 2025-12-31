@@ -1,9 +1,10 @@
-// ============================================
-// PART 4: Edit Profile Screen
-// ============================================
-// Create new file: lib/screens/profile/edit_profile_screen.dart
+
+import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:car_rental_app/services/image_picker_service.dart';
+import 'package:car_rental_app/services/storage_service.dart';
+
 import '../../config/app_theme.dart';
 import '../../config/supabase_config.dart';
 import '../../services/auth_service.dart';
@@ -20,11 +21,17 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _authService = AuthService();
+  final _imagePickerService = ImagePickerService();
+  final _storageService = StorageService();
+
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _licenseController = TextEditingController();
+
   bool _isLoading = false;
+  File? _profileImageFile;
+  String? _profileImageUrl;
 
   @override
   void initState() {
@@ -32,60 +39,88 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _loadProfile();
   }
 
+  // =======================
+  // Load user profile
+  // =======================
   Future<void> _loadProfile() async {
     try {
       final userId = _authService.userId;
-      if (userId != null) {
-        final profile = await SupabaseConfig.client
-            .from('user_profiles')
-            .select()
-            .eq('id', userId)
-            .maybeSingle();
+      if (userId == null) return;
 
-        if (profile != null) {
-          setState(() {
-            _fullNameController.text = profile['full_name'] ?? '';
-            _phoneController.text = profile['phone_number'] ?? '';
-            _licenseController.text = profile['license_number'] ?? '';
-          });
-        }
+      final profile = await SupabaseConfig.client
+          .from('user_profiles')
+          .select()
+          .eq('id', userId)
+          .maybeSingle();
+
+      if (profile != null && mounted) {
+        setState(() {
+          _fullNameController.text = profile['full_name'] ?? '';
+          _phoneController.text = profile['phone_number'] ?? '';
+          _licenseController.text = profile['license_number'] ?? '';
+          _profileImageUrl = profile['profile_image_url'] as String?;
+        });
       }
     } catch (e) {
-      print('Error loading profile: $e');
+      debugPrint('Error loading profile: $e');
     }
   }
 
-  Future<void> _saveProfile() async {
-    // Validate form before saving
-    if (!_formKey.currentState!.validate()) {
-      return;
+  // =======================
+  // Pick profile image
+  // =======================
+  Future<void> _pickProfileImage() async {
+    final pickedFile =
+        await _imagePickerService.pickImageFromGallery();
+
+    if (pickedFile != null && mounted) {
+      setState(() {
+        _profileImageFile = pickedFile;
+      });
     }
+  }
+
+  // =======================
+  // Save profile
+  // =======================
+  Future<void> _saveProfile() async {
+    if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
     try {
       final userId = _authService.userId;
       final userEmail = _authService.userEmail;
-      
-      if (userId != null && userEmail != null) {
-        await SupabaseConfig.client.from('user_profiles').upsert({
-          'id': userId,
-          'email': userEmail,
-          'full_name': _fullNameController.text.trim(),
-          'phone_number': _phoneController.text.trim(),
-          'license_number': _licenseController.text.trim(),
-          'updated_at': DateTime.now().toIso8601String(),
-        });
 
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Profile updated successfully'),
-              backgroundColor: AppTheme.successColor,
-            ),
-          );
-          Navigator.pop(context);
-        }
+      if (userId == null || userEmail == null) return;
+
+      String? uploadedImageUrl = _profileImageUrl;
+
+      if (_profileImageFile != null) {
+        uploadedImageUrl = await _storageService.uploadProfileImage(_profileImageFile!, userId);
+          _profileImageFile!;
+          userId;
+        
+      }
+
+      await SupabaseConfig.client.from('user_profiles').upsert({
+        'id': userId,
+        'email': userEmail,
+        'full_name': _fullNameController.text.trim(),
+        'phone_number': _phoneController.text.trim(),
+        'license_number': _licenseController.text.trim(),
+        'profile_image_url': uploadedImageUrl,
+        'updated_at': DateTime.now().toIso8601String(),
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile updated successfully'),
+            backgroundColor: AppTheme.successColor,
+          ),
+        );
+        Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
@@ -97,10 +132,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
+  // =======================
+  // UI
+  // =======================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,52 +157,85 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               Center(
                 child: Stack(
                   children: [
-                    Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppTheme.primaryColor,
-                      ),
-                      child: Center(
-                        child: Text(
-                          _authService.userEmail?.substring(0, 1).toUpperCase() ?? 'U',
-                          style: const TextStyle(
-                            fontSize: 48,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                    GestureDetector(
+                      onTap: _pickProfileImage,
+                      child: Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppTheme.primaryColor,
+                          image: _profileImageFile != null
+                              ? DecorationImage(
+                                  image: FileImage(_profileImageFile!),
+                                  fit: BoxFit.cover,
+                                )
+                              : (_profileImageUrl != null &&
+                                      _profileImageUrl!.isNotEmpty)
+                                  ? DecorationImage(
+                                      image:
+                                          NetworkImage(_profileImageUrl!),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : null,
                         ),
+                        child: (_profileImageFile == null &&
+                                (_profileImageUrl == null ||
+                                    _profileImageUrl!.isEmpty))
+                            ? Center(
+                                child: Text(
+                                  _authService.userEmail
+                                          ?.substring(0, 1)
+                                          .toUpperCase() ??
+                                      'U',
+                                  style: const TextStyle(
+                                    fontSize: 48,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              )
+                            : null,
                       ),
                     ),
                     Positioned(
                       bottom: 0,
                       right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppTheme.secondaryColor,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 3),
-                        ),
-                        child: const Icon(
-                          Icons.camera_alt,
-                          color: Colors.white,
-                          size: 20,
+                      child: GestureDetector(
+                        onTap: _pickProfileImage,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppTheme.secondaryColor,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.white,
+                              width: 3,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
+
               const SizedBox(height: 32),
+
               CustomTextField(
                 controller: _fullNameController,
                 label: 'Full Name',
                 prefixIcon: Icons.person_outline,
                 validator: Validators.validateName,
               ),
+
               const SizedBox(height: 16),
+
               CustomTextField(
                 controller: _phoneController,
                 label: 'Phone Number',
@@ -170,14 +243,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 keyboardType: TextInputType.phone,
                 validator: Validators.validatePhone,
               ),
+
               const SizedBox(height: 16),
+
               CustomTextField(
                 controller: _licenseController,
                 label: 'License Number',
                 prefixIcon: Icons.credit_card,
                 validator: Validators.validateLicenseNumber,
               ),
+
               const SizedBox(height: 16),
+
+              // Email (read-only)
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -186,11 +264,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.email_outlined, color: Colors.grey),
+                    const Icon(Icons.email_outlined,
+                        color: Colors.grey),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
                         children: [
                           const Text(
                             'Email',
@@ -219,7 +299,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ],
                 ),
               ),
+
               const SizedBox(height: 32),
+
               CustomButton(
                 text: 'Save Changes',
                 onPressed: _saveProfile,

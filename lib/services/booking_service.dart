@@ -1,8 +1,3 @@
-// ============================================
-// FILE 9: services/booking_service.dart
-// ============================================
-// Create new file: lib/services/booking_service.dart
-
 import '../config/supabase_config.dart';
 import '../models/booking_model.dart';
 

@@ -1,7 +1,3 @@
-// ============================================
-// SOLUTION 3: Updated main.dart
-// ============================================
-// Replace your main.dart with this safer version:
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -32,7 +28,7 @@ class CarRentalApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'LuxRide - Car Rental',
+      title: 'SufiRide - Car Rental',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,

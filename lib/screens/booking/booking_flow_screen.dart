@@ -1,9 +1,3 @@
-// ============================================
-// UPDATED: lib/screens/booking/booking_flow_screen.dart
-// ============================================
-// Replace your existing booking_flow_screen.dart with this version
-// that includes payment processing
-
 import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
 import '../../models/car_model.dart';
@@ -466,7 +460,7 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
               'Insurance Coverage',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            subtitle: const Text('\$15 per day'),
+            subtitle: const Text('\PKR 15 per day'),
             secondary: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(

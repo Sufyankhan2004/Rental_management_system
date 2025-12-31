@@ -1,8 +1,3 @@
-// ============================================
-// PART 6: Notifications Screen
-// ============================================
-// Create new file: lib/screens/profile/notifications_screen.dart
-
 import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
 import '../../config/supabase_config.dart';
