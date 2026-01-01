@@ -20,25 +20,32 @@ class CarDetailScreen extends StatelessWidget {
             flexibleSpace: FlexibleSpaceBar(
               background: Hero(
                 tag: 'car_${car.id}',
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        AppTheme.primaryColor.withOpacity(0.3),
-                        AppTheme.accentColor.withOpacity(0.3),
-                      ],
-                    ),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      Icons.directions_car,
-                      size: 150,
-                      color: Colors.white.withOpacity(0.8),
-                    ),
-                  ),
-                ),
+                child: car.imageUrl != null && car.imageUrl!.isNotEmpty
+                    ? Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Image.network(
+                            car.imageUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return _buildPlaceholderHeader();
+                            },
+                          ),
+                          Container(
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black26,
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    : _buildPlaceholderHeader(),
               ),
             ),
           ),
@@ -166,8 +173,8 @@ class CarDetailScreen extends StatelessWidget {
                     'Price',
                     style: TextStyle(color: Colors.grey, fontSize: 14),
                   ),
-                  Text(
-                    '\PKR ${car.pricePerDay.toStringAsFixed(0)}/day',
+                          Text(
+                            'PKR ${car.pricePerDay.toStringAsFixed(0)}/day',
                     style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -302,4 +309,27 @@ class CarDetailScreen extends StatelessWidget {
       }).toList(),
     );
   }
+
+    // Placeholder gradient displayed when a car image is missing or fails to load.
+    Widget _buildPlaceholderHeader() {
+      return Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppTheme.primaryColor.withOpacity(0.3),
+              AppTheme.accentColor.withOpacity(0.3),
+            ],
+          ),
+        ),
+        child: Center(
+          child: Icon(
+            Icons.directions_car,
+            size: 150,
+            color: Colors.white.withOpacity(0.8),
+          ),
+        ),
+      );
+    }
 }

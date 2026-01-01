@@ -67,11 +67,13 @@ class AuthService {
           
           if (existingProfile == null) {
             // Create new profile
-            await _supabase.from('user_profiles').insert({
+            await _supabase.from('user_profiles').upsert({
               'id': response.user!.id,
               'email': email,
               'full_name': fullName,
-            });
+              'profile_image_url': null,
+            },
+            onConflict: 'id');
             print('✅ User profile created');
           } else {
             print('ℹ️ Profile already exists');

@@ -7,18 +7,22 @@ import '../models/car_model.dart';
 class CarCard extends StatelessWidget {
   final Car car;
   final VoidCallback onTap;
+  final EdgeInsetsGeometry? margin;
+  final double? width;
 
   const CarCard({
     super.key,
     required this.car,
     required this.onTap,
+    this.margin,
+    this.width,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 220,
-      margin: const EdgeInsets.only(right: 16),
+      width: width ?? 220,
+      margin: margin ?? const EdgeInsets.only(right: 16),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -39,10 +43,7 @@ class CarCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Car Image - FIXED
                 _buildCarImage(),
-
-                // Car Details
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -84,7 +85,7 @@ class CarCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '\PKR ${car.pricePerDay.toStringAsFixed(0)}',
+                                'PKR ${car.pricePerDay.toStringAsFixed(0)}',
                                 style: const TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,

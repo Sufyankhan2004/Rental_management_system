@@ -120,7 +120,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             backgroundColor: AppTheme.successColor,
           ),
         );
-        Navigator.pop(context);
+        Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {

@@ -91,14 +91,16 @@ class _CarListScreenState extends State<CarListScreen> {
                             padding: const EdgeInsets.all(16),
                             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
-                              childAspectRatio: 0.68,
                               crossAxisSpacing: 16,
                               mainAxisSpacing: 16,
+                              mainAxisExtent: 320,
                             ),
                             itemCount: _filteredCars.length,
                             itemBuilder: (context, index) {
                               return CarCard(
                                 car: _filteredCars[index],
+                                margin: EdgeInsets.zero,
+                                width: double.infinity,
                                 onTap: () {
                                   Navigator.push(
                                     context,

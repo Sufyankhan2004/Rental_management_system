@@ -48,6 +48,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const accent = Color(0xFF8EE3EF);
+
     return Scaffold(
       extendBody: true,
       body: Stack(
@@ -56,12 +58,37 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
                 colors: [
-                  Color.fromARGB(255, 220, 243, 255), // dark grey
-                  Color.fromARGB(255, 220, 237, 255), // lighter grey
+                  Color(0xFF141628),
+                  Color(0xFF1B1F3A),
+                  Color(0xFF090F1A),
                 ],
+              ),
+            ),
+          ),
+          Positioned(
+            top: -60,
+            right: -10,
+            child: Container(
+              width: 220,
+              height: 220,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.05),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -50,
+            left: -40,
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.03),
               ),
             ),
           ),
@@ -77,7 +104,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(24),
                   child: Container(
-                    color: const Color.fromARGB(255, 79, 76, 76)!.withOpacity(0.85),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0x331C233A),
+                          Color(0x332A3763),
+                        ],
+                      ),
+                      border: Border.all(color: Colors.white.withOpacity(0.08)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.25),
+                          blurRadius: 30,
+                          offset: const Offset(0, 18),
+                        ),
+                      ],
+                    ),
                     child: _screens[_selectedIndex],
                   ),
                 ),
@@ -92,7 +136,14 @@ class _HomeScreenState extends State<HomeScreen> {
           borderRadius: BorderRadius.circular(30),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.grey[850]!.withOpacity(0.85),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF232844),
+                  Color(0xFF1B1F34),
+                ],
+              ),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.18),
@@ -106,8 +157,8 @@ class _HomeScreenState extends State<HomeScreen> {
             child: BottomNavigationBar(
               currentIndex: _selectedIndex,
               onTap: (index) => setState(() => _selectedIndex = index),
-              selectedItemColor: Colors.white,
-              unselectedItemColor: Colors.grey[500],
+              selectedItemColor: accent,
+              unselectedItemColor: Colors.white70,
               backgroundColor: Colors.transparent,
               elevation: 0,
               type: BottomNavigationBarType.fixed,

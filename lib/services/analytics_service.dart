@@ -19,15 +19,27 @@ class AnalyticsService {
           .filter('status', 'in', '("active","confirmed")');
       final activeRentals = (activeRentalsResponse as List).length;
 
-      // Total revenue
+      // Total revenue (include active/confirmed rentals to reflect money owed)
       final revenueResponse = await _supabase
-          .from('payments')
-          .select('amount')
-          .eq('payment_status', 'completed');
-      
+          .from('bookings')
+          .select('total_price')
+          .filter('status', 'in', '("completed","active","confirmed")');
+
       double totalRevenue = 0;
-      for (var payment in revenueResponse as List) {
-        totalRevenue += (payment['amount'] as num).toDouble();
+      for (final booking in revenueResponse as List) {
+        totalRevenue += (booking['total_price'] as num?)?.toDouble() ?? 0;
+      }
+
+      // Fallback to payments table if no qualifying bookings were found
+      if (totalRevenue == 0) {
+        final paymentsResponse = await _supabase
+            .from('payments')
+            .select('amount')
+            .eq('payment_status', 'completed');
+
+        for (final payment in paymentsResponse as List) {
+          totalRevenue += (payment['amount'] as num?)?.toDouble() ?? 0;
+        }
       }
 
       // Available cars count

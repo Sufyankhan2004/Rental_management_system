@@ -209,7 +209,7 @@ class CarService {
       if (files.isNotEmpty) {
         // Get the first image file
         final fileName = files.first.name;
-        final imageUrl = _storageService.getPublicUrl('car-images/$carId/$fileName');
+          final imageUrl = _storageService.getPublicUrl('$carId/$fileName');
         print('✅ Found car image: $imageUrl');
         return imageUrl;
       }
