@@ -1,16 +1,38 @@
-# car_rental
+# 🚗 Car Rental Application
 
-A new Flutter project.
+A modern **Car Rental Management Application** built using **Flutter** and **Supabase**.  
+This project allows users to browse available cars, view details, and manage bookings with secure authentication and real-time backend services.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## 📌 Features
 
-A few resources to get you started if this is your first Flutter project:
+- 🔐 User Authentication (Sign up / Login)
+- 🚘 View Available Cars
+- 📄 Car Details with Images
+- 📅 Car Booking System
+- ☁️ Supabase Database Integration
+- 🖼️ Image Storage using Supabase Storage
+- 🔒 Secure Row Level Security (RLS)
+- 📱 Responsive Flutter UI (Android / iOS)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+---
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 🛠️ Tech Stack
+
+### Frontend
+- **Flutter**
+- Dart
+
+### Backend
+- **Supabase**
+  - Authentication
+  - PostgreSQL Database
+  - Storage Buckets
+  - Row Level Security (RLS)
+
+---
+
+## 🗂️ Project Structure
+
+
